@@ -55,8 +55,6 @@ That is why this project works well both as a product demo and as an engineering
 - `MixDNA lite`: blend artist representations directly in the browser with no backend round-trip.
 - `Static deployment`: the public version runs as a static website and is easy to publish.
 
-![MixDNA lite](assets/screenshots/dna-fusion.png)
-
 ## Technical highlights
 
 - Large-scale collaboration graph built with DuckDB.
