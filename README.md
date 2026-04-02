@@ -1,12 +1,24 @@
+<div align="center">
+
 # Music Graph Explorer
 
 Graph-based music intelligence demo for exploring artist relationships, tracing collaboration paths, and computing browser-side MixDNA lite from graph embeddings.
 
-Live demo: `https://nathanmarinas2.github.io/music-graph-explorer/`
+[Live Demo](https://nathanmarinas2.github.io/music-graph-explorer/) | [Docs Bundle](docs) | [Pipeline](pipeline)
 
-This repository is the public, portfolio-friendly version of a larger music analytics workspace. It turns a heavy graph and embedding pipeline into a static experience that people can actually open, use, and understand in seconds.
+</div>
 
-![Connect Artists view](assets/screenshots/capture-connect-engine.png)
+![Connect Artists presentation](assets/screenshots/capture-connect-engine.png)
+
+This repository is the public, portfolio-friendly version of a larger music analytics workspace. It turns a heavy graph and embedding pipeline into a static experience that people can open, use, and understand in seconds.
+
+At a glance:
+
+- Graph-based exploration of artist relationships.
+- Shortest-path tracing across collaboration edges.
+- Track-aware route explanations.
+- Browser-side MixDNA lite powered by compressed embeddings.
+- Static deployment with no backend required for the public demo.
 
 ## Overview
 
