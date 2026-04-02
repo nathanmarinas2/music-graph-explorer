@@ -8,7 +8,9 @@ Graph-based music intelligence demo for exploring artist relationships, tracing 
 
 </div>
 
-![Connect Artists presentation](assets/screenshots/capture-connect-engine.png)
+<div align="center">
+  <img src="assets/screenshots/music-graph-explorer-hero.gif" alt="Music Graph Explorer Demo" width="800">
+</div>
 
 This repository is the public, portfolio-friendly version of a larger music analytics workspace. It turns a heavy graph and embedding pipeline into a static experience that people can open, use, and understand in seconds.
 
