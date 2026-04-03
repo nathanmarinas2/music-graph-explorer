@@ -19,6 +19,7 @@ Thumbs.db
 data/*
 !data/README.md
 duckdb_tmp/
+deploy/
 
 # Large raw and model artifacts
 *.parquet

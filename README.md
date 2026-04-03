@@ -2,7 +2,7 @@
 
 # Music Graph Explorer
 
-Graph-based music intelligence demo for exploring artist relationships, tracing collaboration paths, and computing browser-side MixDNA lite from graph embeddings.
+Browser-native music intelligence demo for exploring artist relationships, tracing collaboration paths, and computing MixDNA lite directly from graph embeddings.
 
 [Live Demo](https://nathanmarinas2.github.io/music-graph-explorer/) | [Docs Bundle](docs) | [Pipeline](pipeline)
 
@@ -12,19 +12,26 @@ Graph-based music intelligence demo for exploring artist relationships, tracing 
   <img src="assets/screenshots/music-graph-explorer-hero.gif" alt="Music Graph Explorer Demo" width="800">
 </div>
 
-This repository is the public, portfolio-friendly version of a larger music analytics workspace. It turns a heavy graph and embedding pipeline into a static experience that people can open, use, and understand in seconds.
+This repository packages a large-scale music graph and embedding pipeline into a fast public demo. It turns raw collaboration data, learned graph structure, and lightweight client-side inference into something people can open, use, and understand in seconds.
 
 At a glance:
 
-- Graph-based exploration of artist relationships.
-- Shortest-path tracing across collaboration edges.
-- Track-aware route explanations.
-- Browser-side MixDNA lite powered by compressed embeddings.
-- Static deployment with no backend required for the public demo.
+- Explore a top-100k artist collaboration graph.
+- Trace shortest paths across collaboration edges.
+- Inspect track-aware route explanations on many hops.
+- Run MixDNA lite locally in the browser from quantized embeddings.
+- Deploy the public experience as a static site with no backend requirement.
+
+## Public snapshot
+
+- `100,000` artists in the public subset.
+- `1,059,326` collaboration edges with track-aware route data.
+- `64`-dimensional embeddings with `100,000`-artist MixDNA lite coverage.
+- `6.1 MB` quantized vector blob for browser-side inference.
 
 ## Overview
 
-Music Graph Explorer models the artist ecosystem as a graph.
+Music Graph Explorer models the artist ecosystem as a graph and exposes its most useful public slice through a lightweight browser experience.
 
 - Each node is an artist.
 - Each edge is a collaboration.
@@ -32,28 +39,28 @@ Music Graph Explorer models the artist ecosystem as a graph.
 - UMAP projects those embeddings into 3D space for interactive exploration.
 - A lightweight public edition exposes the most compelling part of the system without requiring a backend.
 
-The public product is centered on `Connect Artists`: a static, browser-friendly experience for discovering routes between artists and computing MixDNA lite locally in the client.
+The public product is centered on `Connect Artists`: a browser-friendly mode for discovering routes between artists and computing MixDNA lite locally in the client.
 
-## Why this project matters
+## Why it stands out
 
-The value of the project is not only the model or the visualization. The hard part is taking a large ML and data pipeline and turning it into something public, fast, and deployable.
+The value of the project is not only the model or the visualization. The harder engineering problem is turning a large offline ML and data pipeline into a public product that is fast, understandable, and deployable.
 
 This repo is meant to show that full chain:
 
 - graph construction from raw collaboration data,
-- embedding generation,
+- graph embedding generation,
 - dimensionality reduction for interactive visualization,
 - public asset compression and optimization,
 - and final product delivery as a static site.
 
-That is why this project works well both as a product demo and as an engineering portfolio piece.
+That combination makes it stronger than a notebook-only ML project or a frontend-only demo.
 
 ## Product highlights
 
 - `Connect Artists`: trace collaboration paths between artists directly in the graph.
 - `Track-aware hops`: many route steps include the track that connects two artists.
 - `MixDNA lite`: blend artist representations directly in the browser with no backend round-trip.
-- `Static deployment`: the public version runs as a static website and is easy to publish.
+- `Static deployment`: the public version runs directly from static hosting and is easy to publish.
 
 ## Technical highlights
 
@@ -117,6 +124,7 @@ The public site uses a browser-friendly compressed embedding bundle.
 - [pipeline](pipeline): data preparation and public asset generation scripts.
 - [scripts](scripts): deployment-oriented build logic.
 - [core](core): shared configuration and helpers.
+- [tests](tests): lightweight regression coverage for shared helpers and build transforms.
 - [assets/screenshots](assets/screenshots): screenshots for GitHub and social sharing.
 - [data](data): local-only generated artifacts that are intentionally ignored by git.
 
@@ -175,15 +183,12 @@ Excluded:
 - The browser demo is optimized for the top-100k artist slice rather than the full graph.
 - Some larger experimental assets are intentionally excluded to keep the public repo usable.
 
-## Portfolio context
+## What this demonstrates
 
-This project is meant to demonstrate end-to-end AI and product engineering:
-
-- turning structured music metadata into a graph,
-- training usable latent representations,
-- converting embeddings into an interactive visual experience,
-- compressing ML artifacts for client-side execution,
-- and shipping the result as a public-facing product.
+- End-to-end data engineering from raw music metadata to graph artifacts.
+- Representation learning over collaboration networks.
+- ML artifact compression for client-side execution.
+- Product-focused packaging and static deployment.
 
 ## Disclaimer
 

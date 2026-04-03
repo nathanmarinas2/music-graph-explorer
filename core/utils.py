@@ -78,7 +78,7 @@ def load_word2vec_embeddings(
 
 def build_adjacency(edges_df: pd.DataFrame, *, as_sets: bool) -> dict[int, list[int] | set[int]]:
     pairs = edges_df.loc[:, ["source", "target"]].astype("int64")
-    reversed_pairs = pairs.rename(columns={"source": "target", "target": "source"})
+    reversed_pairs = pairs.loc[:, ["target", "source"]].copy()
     reversed_pairs.columns = ["source", "target"]
     stacked = pd.concat([pairs, reversed_pairs], ignore_index=True)
     grouped = stacked.groupby("source", sort=False)["target"].agg(list)

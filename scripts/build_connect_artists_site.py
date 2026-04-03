@@ -22,6 +22,7 @@ from core.config import (
 
 OUTPUT_DIR = PROJECT_ROOT / "docs"
 OUTPUT_DATA_DIR = OUTPUT_DIR / "spotify_clean_parquet"
+WEB_DIR = PROJECT_ROOT / "web"
 
 STATIC_ASSETS = [
     VIZ_TOP100K_FILE,
@@ -29,6 +30,15 @@ STATIC_ASSETS = [
     EDGES_TOP100K_FILE,
     MIXDNA_LITE_META_FILE,
     MIXDNA_LITE_VECTORS_FILE,
+]
+
+SHELL_ASSETS = [
+    WEB_DIR / "styles.css",
+    WEB_DIR / "app.js",
+]
+
+SHELL_ASSET_DIRS = [
+    (WEB_DIR / "vendor", OUTPUT_DIR / "vendor"),
 ]
 
 HEADERS_TEXT = """/*
@@ -55,8 +65,8 @@ def build_entry_html(source_html: str) -> str:
         1,
     )
     html = html.replace(
-        "<script>\n        // ============ CONFIG ============",
-        "<script>window.__SPOTIFY_FORCE_CONNECT_ONLY__ = true;</script>\n    <script>\n        // ============ CONFIG ============",
+        '<script src="./app.js"></script>',
+        '<script>window.__SPOTIFY_FORCE_CONNECT_ONLY__ = true;</script>\n    <script src="./app.js"></script>',
         1,
     )
     return html
@@ -67,6 +77,20 @@ def copy_assets() -> None:
     for asset in STATIC_ASSETS:
         shutil.copy2(asset, OUTPUT_DATA_DIR / asset.name)
         print(f"    Copied {asset.name}")
+
+
+def copy_shell_assets() -> None:
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    for asset in SHELL_ASSETS:
+        shutil.copy2(asset, OUTPUT_DIR / asset.name)
+        print(f"    Copied {asset.name}")
+
+    for source_dir, target_dir in SHELL_ASSET_DIRS:
+        if not source_dir.exists():
+            continue
+        shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
+        print(f"    Copied {source_dir.name}/")
 
 
 def write_public_entries(entry_html: str) -> None:
@@ -80,9 +104,10 @@ def write_public_entries(entry_html: str) -> None:
 
 def main() -> None:
     print("[*] Building deployable Connect Artists site...")
-    source_html = (PROJECT_ROOT / "web" / "index.html").read_text(encoding="utf-8")
+    source_html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
     entry_html = build_entry_html(source_html)
     write_public_entries(entry_html)
+    copy_shell_assets()
     copy_assets()
     print(f"[*] Ready to deploy from: {OUTPUT_DIR}")
 
