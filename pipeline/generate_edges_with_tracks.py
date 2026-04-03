@@ -1,10 +1,9 @@
-"""
-07_generate_edges_with_tracks.py - Genera aristas con nombres de canciones.
+"""Attach representative track names to public graph edges.
 
 Output:
-  - edges_top100k_with_tracks.json: [[source_id, target_id, "track_name"], ...]
+    - edges_top100k_with_tracks.json: [[source_id, target_id, "track_name"], ...]
 
-Esto permite mostrar qué canción conecta a dos artistas en el Path Finder.
+This keeps collaboration routes explainable in the Path Finder UI.
 """
 from pathlib import Path
 import sys
@@ -16,7 +15,7 @@ import time
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
-        sys.path.insert(0, str(PROJECT_ROOT))
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.config import (
     DUCKDB_MEMORY_LIMIT,
@@ -28,24 +27,24 @@ from core.config import (
 )
 from core.utils import as_sql_path, ensure_directory
 
-def main():
-    print("[*] Generando aristas con nombres de canciones...")
+def main() -> None:
+    print("[*] Building edge annotations with track names...")
     start = time.time()
     
-    # 1. Cargar IDs del Top 100k
-    print("    Cargando Top 100k IDs...")
+    # 1. Load the IDs from the public top-100k slice.
+    print("    Loading top-100k IDs...")
     with open(VIZ_TOP100K_FILE, 'r', encoding='utf-8') as f:
         top_artists = json.load(f)
     top_ids_df = pd.DataFrame({'artist_id': [int(a['i']) for a in top_artists]})
-    print(f"    IDs cargados: {len(top_ids_df):,}")
+    print(f"    IDs loaded: {len(top_ids_df):,}")
     
-    # 2. Consultar DuckDB para obtener colaboraciones con nombres de tracks
-    print("    Consultando colaboraciones con nombres de tracks...")
+    # 2. Query DuckDB for collaborations and representative track names.
+    print("    Querying collaborations with track names...")
     con = duckdb.connect()
     con.register('top_ids_df', top_ids_df)
     
-    # Configurar DuckDB para evitar OOM (Out Of Memory)
-    print("    Configurando DuckDB (Disk Spilling)...")
+    # Configure DuckDB spilling to reduce memory pressure.
+    print("    Configuring DuckDB disk spilling...")
     temp_dir = ensure_directory(DUCKDB_TEMP_DIR)
     con.execute(f"SET temp_directory='{as_sql_path(temp_dir)}'")
     con.execute(f"SET memory_limit='{DUCKDB_MEMORY_LIMIT}'")
@@ -77,19 +76,19 @@ def main():
     ORDER BY source, target
     """
     
-    print("    Ejecutando query (esto puede tardar)...")
+    print("    Executing query...")
     rows = con.execute(query).fetchall()
     edges_with_tracks = [[int(src), int(tgt), track] for src, tgt, track in rows]
     
-    print(f"    Aristas filtradas: {len(edges_with_tracks):,}")
+    print(f"    Filtered edges: {len(edges_with_tracks):,}")
     
-    # 4. Guardar
-    print(f"    Guardando {EDGES_WITH_TRACKS_FILE.name}...")
+    # 3. Persist the annotated edges.
+    print(f"    Saving {EDGES_WITH_TRACKS_FILE.name}...")
     with open(EDGES_WITH_TRACKS_FILE, 'w', encoding='utf-8') as f:
         json.dump(edges_with_tracks, f)
     
-    print(f"\n[*] ¡Completado en {time.time() - start:.1f}s!")
-    print(f"    Archivo: {EDGES_WITH_TRACKS_FILE}")
+    print(f"\n[*] Completed in {time.time() - start:.1f}s")
+    print(f"    Output: {EDGES_WITH_TRACKS_FILE}")
 
 if __name__ == "__main__":
     main()

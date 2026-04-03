@@ -1,10 +1,4 @@
-"""
-04_train_embeddings_light.py - Entrena embeddings Node2Vec sobre el grafo de colaboraciones.
-
-CORREGIDO: Los IDs en artist_connections.parquet ahora son rowid reales.
-Este script no necesita cambios lógicos porque simplemente lee source/target del parquet.
-El entrenamiento es agnóstico al contenido de los IDs.
-"""
+"""Train Node2Vec-style embeddings over the artist collaboration graph."""
 from pathlib import Path
 import sys
 
@@ -21,32 +15,32 @@ if str(PROJECT_ROOT) not in sys.path:
 from core.config import CONNECTIONS_FILE, NODE2VEC_MODEL_FILE, RANDOM_SEED
 from core.utils import build_adjacency
 
-# Configuración Node2Vec
-WALK_LENGTH = 15   # Longitud del camino
-NUM_WALKS = 10     # Caminos por nodo
-VECTOR_SIZE = 64   # Dimensiones del embedding
-WINDOW = 5         # Ventana de contexto
+# Node2Vec-style training configuration.
+WALK_LENGTH = 15
+NUM_WALKS = 10
+VECTOR_SIZE = 64
+WINDOW = 5
 WORKERS = multiprocessing.cpu_count()
 
-def train_embeddings():
-    print("[*] Iniciando entrenamiento de embeddings...")
+def train_embeddings() -> None:
+    print("[*] Training embeddings...")
     start_time = time.time()
     rng = random.Random(RANDOM_SEED)
     
-    # Cargar conexiones
-    print("    Cargando grafo...")
+    # Load graph edges.
+    print("    Loading graph...")
     df = pd.read_parquet(CONNECTIONS_FILE)
-    print(f"    Conexiones cargadas: {len(df):,}")
+    print(f"    Connections loaded: {len(df):,}")
     
-    # Construir lista de adyacencia
-    print("    Construyendo lista de adyacencia...")
+    # Build adjacency lists for random walks.
+    print("    Building adjacency list...")
     adj = build_adjacency(df, as_sets=False)
     
     nodes = list(adj.keys())
-    print(f"    Nodos únicos: {len(nodes):,}")
+    print(f"    Unique nodes: {len(nodes):,}")
     
-    # Generar Random Walks
-    print(f"[*] Generando Random Walks ({NUM_WALKS} x {WALK_LENGTH})...")
+    # Generate random walks.
+    print(f"[*] Generating random walks ({NUM_WALKS} x {WALK_LENGTH})...")
     walks = []
     
     total_expected = len(nodes) * NUM_WALKS
@@ -55,7 +49,7 @@ def train_embeddings():
     for _ in range(NUM_WALKS):
         rng.shuffle(nodes)
         for node in nodes:
-            walk = [str(node)]  # Gensim necesita strings
+            walk = [str(node)]
             curr = node
             for _ in range(WALK_LENGTH - 1):
                 neighbors = adj.get(curr, [])
@@ -67,33 +61,33 @@ def train_embeddings():
             
             step_count += 1
             if step_count % 500_000 == 0:
-                print(f"    Progreso: {step_count / 1_000_000:.1f}M caminatas...")
+                print(f"    Progress: {step_count / 1_000_000:.1f}M walks...")
 
-    print(f"    Total caminatas: {len(walks):,}")
+    print(f"    Total walks: {len(walks):,}")
     
-    # Liberar memoria
+    # Release memory before training.
     del adj, df
     
-    # Entrenar Word2Vec
-    print(f"[*] Entrenando Word2Vec ({VECTOR_SIZE} dimensiones)...")
+    # Train Word2Vec on the generated walks.
+    print(f"[*] Training Word2Vec ({VECTOR_SIZE} dimensions)...")
     model = Word2Vec(
         sentences=walks,
         vector_size=VECTOR_SIZE,
         window=WINDOW,
         min_count=1,
-        sg=1,  # Skip-gram
+        sg=1,
         workers=WORKERS,
         epochs=5,
         seed=RANDOM_SEED,
     )
     
-    # Guardar
-    print("[*] Guardando modelo...")
+    # Persist the model.
+    print("[*] Saving model...")
     model.save(str(NODE2VEC_MODEL_FILE))
     
-    print(f"[*] ¡ÉXITO! Entrenamiento completado en {time.time() - start_time:.2f}s")
-    print(f"    Modelo: {NODE2VEC_MODEL_FILE}")
-    print(f"    Vocabulario: {len(model.wv)} nodos")
+    print(f"[*] Training completed in {time.time() - start_time:.2f}s")
+    print(f"    Model: {NODE2VEC_MODEL_FILE}")
+    print(f"    Vocabulary: {len(model.wv)} nodes")
 
 if __name__ == "__main__":
     train_embeddings()

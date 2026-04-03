@@ -1,9 +1,4 @@
-"""
-05_visual_data_prep.py - Genera el JSON para la visualización 3D.
-
-CORREGIDO: Ahora usa 'rowid' real de artists.parquet para cruzar con el modelo.
-Los IDs en el modelo Word2Vec ahora son rowid reales (strings), así que el JOIN funciona.
-"""
+"""Generate the 3D visualization JSON from graph embeddings and metadata."""
 from pathlib import Path
 import sys
 
@@ -22,44 +17,44 @@ if str(PROJECT_ROOT) not in sys.path:
 from core.config import ARTIST_GENRES_FILE, ARTISTS_FILE, NODE2VEC_MODEL_FILE, VIZ_DATA_FILE
 from core.utils import as_sql_path
 
-def generate_viz_data():
-    print("[*] Preparando datos para visualización 3D...")
+def generate_viz_data() -> None:
+    print("[*] Preparing 3D visualization data...")
     start_time = time.time()
     
-    # 1. Cargar Modelo Word2Vec
-    print("    Cargando modelo Node2Vec...")
+    # 1. Load the trained Node2Vec model.
+    print("    Loading Node2Vec model...")
     model = Word2Vec.load(str(NODE2VEC_MODEL_FILE))
     
-    # Los keys del modelo son strings (rowid convertido a str durante entrenamiento)
-    # Convertimos a int para poder hacer JOIN con DuckDB
+    # Model keys are stringified rowids from training time.
+    # Convert them back to integers for DuckDB joins.
     node_ids = [int(k) for k in model.wv.index_to_key]
     vectors = model.wv.vectors
     
-    print(f"    Vectores cargados: {len(node_ids):,} (Dim: {vectors.shape[1]})")
+    print(f"    Vectors loaded: {len(node_ids):,} (dim={vectors.shape[1]})")
     
-    # 2. Reducción UMAP a 3D
-    print("    Ejecutando UMAP (64D -> 3D)... esto toma unos minutos...")
+    # 2. Reduce embeddings to 3D with UMAP.
+    print("    Running UMAP (64D -> 3D)... this may take a few minutes...")
     reducer = umap.UMAP(
         n_components=3, 
         n_neighbors=15, 
         min_dist=0.1, 
         metric='cosine',
         random_state=42,
-        n_jobs=1  # Deterministic
+        n_jobs=1,
     )
     embedding_3d = reducer.fit_transform(vectors)
-    print("    UMAP completado.")
+    print("    UMAP completed.")
     
-    # 3. Enriquecer con Nombres y Géneros (DuckDB)
-    print("    Enriqueciendo datos con metadatos...")
+    # 3. Enrich vectors with artist metadata through DuckDB.
+    print("    Enriching vectors with metadata...")
     
-    # Crear DF temporal con los rowid que tenemos en el modelo
+    # Create a temporary dataframe with the rowids present in the model.
     df_nodes = pd.DataFrame({'artist_rowid': node_ids})
     
     con = duckdb.connect()
     con.register('df_nodes', df_nodes)
     
-    # Query usando rowid REAL
+    # Join against parquet metadata using real rowids.
     query = f"""
     SELECT 
         n.artist_rowid as id,
@@ -72,16 +67,16 @@ def generate_viz_data():
     GROUP BY n.artist_rowid, a.name, a.popularity
     """
     
-    print("    Ejecutando JOIN...")
+    print("    Executing join...")
     metadata_df = con.execute(query).df()
 
-    # Reordenar para que coincida con el orden de vectors
+    # Reorder rows to match the vector matrix ordering.
     metadata_df = metadata_df.set_index('id').reindex(node_ids).reset_index()
     
-    # 4. Construir JSON
-    print("    Construyendo JSON...")
+    # 4. Build the final JSON payload.
+    print("    Building JSON...")
 
-    scale = 50  # Escalar coordenadas UMAP
+    scale = 50
 
     coords_df = pd.DataFrame(embedding_3d, columns=['x', 'y', 'z'])
     output_df = pd.DataFrame({
@@ -95,23 +90,23 @@ def generate_viz_data():
     })
     data = output_df.to_dict(orient='records')
     
-    # Guardar
+    # Persist the output JSON.
     with open(VIZ_DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f)
     
-    print(f"[*] ¡ÉXITO! Datos generados en {time.time() - start_time:.2f}s")
-    print(f"    Archivo: {VIZ_DATA_FILE}")
-    print(f"    Nodos: {len(data):,}")
+    print(f"[*] Visualization data generated in {time.time() - start_time:.2f}s")
+    print(f"    Output: {VIZ_DATA_FILE}")
+    print(f"    Nodes: {len(data):,}")
     
-    # Verificación rápida: buscar artistas famosos
-    print("\n    Verificación de artistas famosos:")
+    # Quick sanity check for well-known artists.
+    print("\n    Quick sanity check:")
     famous = ["Taylor Swift", "The Weeknd", "Bad Bunny", "Drake", "Ed Sheeran"]
     for name in famous:
         matches = [d for d in data if name.lower() in d['n'].lower()]
         if matches:
-            print(f"      ✓ {name}: encontrado (pop={matches[0]['p']})")
+            print(f"      OK {name}: found (pop={matches[0]['p']})")
         else:
-            print(f"      ✗ {name}: NO encontrado")
+            print(f"      Missing {name}")
 
 if __name__ == "__main__":
     generate_viz_data()

@@ -2393,26 +2393,41 @@
             drawPath(path);
         }
 
+        function reconstructPath(parents, end) {
+            const path = [];
+            let current = end;
+
+            while (current !== null) {
+                path.push(current);
+                current = parents.get(current) ?? null;
+            }
+
+            path.reverse();
+            return path;
+        }
+
         function bfs(start, end) {
             if (start === end) return [start];
-            const q = [[start]];
-            const visited = new Set([start]);
 
-            while (q.length > 0) {
-                const path = q.shift();
-                const node = path[path.length - 1];
+            const queue = [start];
+            let head = 0;
+            const parents = new Map([[start, null]]);
 
-                if (!adjacencyList[node]) continue;
+            while (head < queue.length) {
+                const node = queue[head++];
+                const neighbors = adjacencyList[node];
 
-                for (const neighbor of adjacencyList[node]) {
-                    if (!visited.has(neighbor)) {
-                        visited.add(neighbor);
-                        const newPath = [...path, neighbor];
-                        if (neighbor === end) return newPath;
-                        q.push(newPath);
-                    }
+                if (!neighbors) continue;
+
+                for (const neighbor of neighbors) {
+                    if (parents.has(neighbor)) continue;
+
+                    parents.set(neighbor, node);
+                    if (neighbor === end) return reconstructPath(parents, end);
+                    queue.push(neighbor);
                 }
             }
+
             return null;
         }
 

@@ -27,10 +27,6 @@ SOURCE_IMAGES = [
 ]
 
 
-def ease_out(value: float) -> float:
-    return 1 - (1 - value) * (1 - value)
-
-
 def fit_cover(image: Image.Image) -> Image.Image:
     return ImageOps.fit(
         image.convert("RGB"),
