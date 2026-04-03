@@ -251,6 +251,8 @@ body.connect-only .search-caption {
     top: 120px;
     left: 32px;
     width: 340px;
+    max-height: calc(100vh - 152px);
+    max-height: calc(100dvh - 152px);
     background:
         radial-gradient(circle at top right, rgba(29, 185, 84, 0.12), transparent 36%),
         linear-gradient(180deg, rgba(14, 14, 14, 0.82), rgba(7, 7, 7, 0.7));
@@ -261,11 +263,18 @@ body.connect-only .search-caption {
     z-index: 100;
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
     transform-origin: top left;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
 }
 
 #pathfinder-panel.visible {
     display: block;
     animation: panelIn 0.5s var(--ease-out-expo);
+}
+
+.pf-inner {
+    min-height: 0;
 }
 
 body.connect-only #mode-toggle,
@@ -518,9 +527,8 @@ body.connect-only .ai-actions {
 
 /* Path list items styling */
 .pf-path-list {
-    max-height: 240px;
-    overflow-y: auto;
-    padding-right: 4px;
+    max-height: none;
+    overflow: visible;
 }
 
 .pf-step {
@@ -1043,7 +1051,8 @@ body.connect-only .card-actions {
         width: 100%;
         border-radius: 20px 20px 0 0;
         padding: 0;
-        max-height: 52vh;
+        max-height: 78vh;
+        max-height: 78dvh;
         background: rgba(10, 10, 10, 0.88);
         backdrop-filter: blur(24px);
         border: none;
@@ -1077,8 +1086,10 @@ body.connect-only .card-actions {
     .pf-inner {
         padding: 0 16px 16px;
         overflow-y: auto;
-        max-height: calc(52vh - 56px);
+        max-height: calc(78vh - 56px);
+        max-height: calc(78dvh - 56px);
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
     }
 
     .pf-header {
@@ -1110,10 +1121,6 @@ body.connect-only .card-actions {
         min-height: 44px;
         padding: 0 10px;
         font-size: 11px;
-    }
-
-    .pf-path-list {
-        max-height: 140px;
     }
 
     .pf-result {

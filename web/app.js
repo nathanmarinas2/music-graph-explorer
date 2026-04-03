@@ -55,6 +55,8 @@ const CONNECT_EXAMPLES = [
 
 const INIT_POS = new THREE.Vector3(150, 80, 150);
 const COLORS = [0x1DB954, 0xFF6B6B, 0x4ECDC4, 0xFFE66D, 0x95E1D3, 0xF38181];
+const MOBILE_PATHFINDER_COLLAPSED_H = 56;
+const MOBILE_PATHFINDER_MAX_VH = 0.78;
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -72,6 +74,21 @@ function clearElement(element) {
 
 function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
+}
+
+function isMobilePathfinderLayout() {
+    return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function getExpandedPathfinderHeight() {
+    return `${Math.round(window.innerHeight * MOBILE_PATHFINDER_MAX_VH)}px`;
+}
+
+function expandPathfinderPanel() {
+    const panel = document.getElementById('pathfinder-panel');
+    if (!panel || !isMobilePathfinderLayout()) return;
+    panel.classList.remove('collapsed');
+    panel.style.maxHeight = getExpandedPathfinderHeight();
 }
 
 function setLoaderState(message, note) {
@@ -649,8 +666,8 @@ async function init() {
     let isDragging = false;
     let touchYStart = 0;
     let startHeight = 0;
-    const COLLAPSED_H = 56;
-    const MAX_VH = 0.52;
+    const COLLAPSED_H = MOBILE_PATHFINDER_COLLAPSED_H;
+    const MAX_VH = MOBILE_PATHFINDER_MAX_VH;
 
     pfPanel.addEventListener('touchstart', (e) => {
         // Only trigger drag if clicking the handle or the title area (the top part)
@@ -686,14 +703,14 @@ async function init() {
         if (totalDelta < 8) {
             // Treat as a tap: toggle
             pfPanel.classList.toggle('collapsed');
-            pfPanel.style.maxHeight = pfPanel.classList.contains('collapsed') ? COLLAPSED_H + 'px' : '52vh';
+            pfPanel.style.maxHeight = pfPanel.classList.contains('collapsed') ? COLLAPSED_H + 'px' : getExpandedPathfinderHeight();
         } else {
             // Drag ended: snap to nearest state
             const currentHeight = pfPanel.offsetHeight;
             const limit = window.innerHeight * MAX_VH;
             if (currentHeight > (limit + COLLAPSED_H) / 2) {
                 pfPanel.classList.remove('collapsed');
-                pfPanel.style.maxHeight = '52vh';
+                pfPanel.style.maxHeight = getExpandedPathfinderHeight();
             } else {
                 pfPanel.classList.add('collapsed');
                 pfPanel.style.maxHeight = COLLAPSED_H + 'px';
@@ -985,6 +1002,8 @@ function findPath() {
     const shareBtn = document.getElementById('pf-share-btn');
 
     resDiv.style.display = 'block';
+    listDiv.scrollTop = 0;
+    expandPathfinderPanel();
 
     if (!path) {
         resultSummary.textContent = 'No route found in the public graph. Try one of the example pairs or more mainstream artists.';
@@ -1325,6 +1344,19 @@ function onResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const pfPanel = document.getElementById('pathfinder-panel');
+    if (!pfPanel) return;
+
+    if (isMobilePathfinderLayout()) {
+        if (!pfPanel.classList.contains('collapsed')) {
+            pfPanel.style.maxHeight = getExpandedPathfinderHeight();
+        }
+        return;
+    }
+
+    pfPanel.classList.remove('collapsed');
+    pfPanel.style.maxHeight = '';
 }
 
 let tick = 0;
