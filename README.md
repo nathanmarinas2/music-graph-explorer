@@ -4,6 +4,8 @@
 
 Browser-native music intelligence demo for exploring artist relationships, tracing collaboration paths, and computing MixDNA lite directly from graph embeddings.
 
+[![Tests](https://github.com/nathanmarinas2/music-graph-explorer/actions/workflows/tests.yml/badge.svg)](https://github.com/nathanmarinas2/music-graph-explorer/actions/workflows/tests.yml)
+
 [Live Demo](https://nathanmarinas2.github.io/music-graph-explorer/) | [Docs Bundle](docs) | [Pipeline](pipeline)
 
 </div>
